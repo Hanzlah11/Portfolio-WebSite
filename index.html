@@ -671,7 +671,9 @@ updateClock();
             ctx.beginPath();
             ctx.arc(cx, cy, cw * 0.7 * cell.rp, 0, Math.PI*2);
             ctx.clip();
-            ctx.drawImage(img, c*cw, r*ch, cw, ch);
+            const sw = img.naturalWidth / COLS;
+            const sh = img.naturalHeight / ROWS;
+            ctx.drawImage(img, c*sw, r*sh, sw, sh, c*cw, r*ch, cw, ch);
             ctx.restore();
           }
           if (cell.rp < 1) {
