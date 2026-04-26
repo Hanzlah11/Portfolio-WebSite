@@ -127,28 +127,18 @@ nav {
 /* Binary photo */
 #photo-wrap {
   position: relative;
-  width: 200px;
-  height: 200px;
 }
-#photo-canvas {
-  border-radius: 50%;
-  border: 2px solid var(--green);
-  box-shadow: 0 0 30px rgba(0,255,65,0.4), 0 0 60px rgba(0,255,65,0.1);
+#profile-photo {
+  width: 320px;
+  height: 400px;
+  object-fit: cover;
+  object-position: top;
   display: block;
+  filter: drop-shadow(0 0 18px rgba(0,255,65,0.25));
+  transition: filter 0.3s;
 }
-.photo-ring {
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  animation: spin 12s linear infinite;
-}
-.photo-ring-2 {
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  border: 1px dashed var(--text-muted);
-  animation: spin 20s linear infinite reverse;
+#profile-photo:hover {
+  filter: drop-shadow(0 0 30px rgba(0,255,65,0.5));
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -440,9 +430,7 @@ footer {
 
   <div class="hero-content">
     <div id="photo-wrap">
-      <div class="photo-ring-2"></div>
-      <div class="photo-ring"></div>
-      <canvas id="photo-canvas" width="200" height="200"></canvas>
+      <img src="photo.png" alt="Hanzlah Imran" id="profile-photo"/>
     </div>
 
     <div>
@@ -631,94 +619,6 @@ updateClock();
   }, 60);
 })();
 
-// ── Binary photo reveal ──
-(function() {
-  const canvas = document.getElementById('photo-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = 200, H = 200;
-  const COLS = 25, ROWS = 25;
-  const cw = W/COLS, ch = H/ROWS;
-  let grid = [], frame = 0, animId, revealed = 0;
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  // Replace this src with your actual photo path: img.src = 'photo.jpg';
-  img.src = 'photo.png';
-
-  function initGrid() {
-    grid = []; revealed = 0; frame = 0;
-    for (let r = 0; r < ROWS; r++) {
-      grid[r] = [];
-      for (let c = 0; c < COLS; c++) {
-        grid[r][c] = { char: Math.random()>0.5?'1':'0', phase: Math.random(), speed: 0.015+Math.random()*0.03, revealed: false, rp: 0 };
-      }
-    }
-  }
-
-  function draw() {
-    ctx.fillStyle = '#0d1117';
-    ctx.fillRect(0,0,W,H);
-    ctx.font = `bold ${Math.floor(cw*0.65)}px 'Share Tech Mono'`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const cell = grid[r][c];
-        const cx = c*cw+cw/2, cy = r*ch+ch/2;
-        if (cell.revealed) {
-          cell.rp = Math.min(1, cell.rp + 0.06);
-          if (img.complete && img.naturalWidth > 0) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, cw * 0.7 * cell.rp, 0, Math.PI*2);
-            ctx.clip();
-            const sw = img.naturalWidth / COLS;
-            const sh = img.naturalHeight / ROWS;
-            ctx.drawImage(img, c*sw, r*sh, sw, sh, c*cw, r*ch, cw, ch);
-            ctx.restore();
-          }
-          if (cell.rp < 1) {
-            ctx.globalAlpha = 1 - cell.rp;
-            ctx.fillStyle = '#00FF41';
-            ctx.fillText(cell.char, cx, cy);
-            ctx.globalAlpha = 1;
-          }
-        } else {
-          cell.phase += cell.speed;
-          if (cell.phase > 1) { cell.phase = 0; cell.char = Math.random()>0.5?'1':'0'; }
-          const b = Math.floor(20 + cell.phase * 45);
-          ctx.fillStyle = `rgb(0,${b},0)`;
-          ctx.globalAlpha = 0.3 + cell.phase * 0.7;
-          ctx.fillText(cell.char, cx, cy);
-          ctx.globalAlpha = 1;
-        }
-      }
-    }
-  }
-
-  function revealStep() {
-    const pool = [];
-    for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (!grid[r][c].revealed) pool.push([r,c]);
-    if (!pool.length) return false;
-    const n = Math.max(1, Math.floor(pool.length * 0.04));
-    for (let i=0;i<n;i++) {
-      const idx = Math.floor(Math.random()*pool.length);
-      const [r,c] = pool.splice(idx,1)[0];
-      grid[r][c].revealed = true;
-    }
-    return true;
-  }
-
-  function animate() {
-    frame++;
-    draw();
-    if (frame > 50 && frame % 4 === 0) { if (!revealStep()) { cancelAnimationFrame(animId); return; } }
-    animId = requestAnimationFrame(animate);
-  }
-
-  initGrid();
-  animate();
-  canvas.addEventListener('click', () => { cancelAnimationFrame(animId); initGrid(); animate(); });
-})();
 
 // ── Typewriter ──
 (function() {
